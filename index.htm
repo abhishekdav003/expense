@@ -27,6 +27,21 @@
   </form>
   <p id="message"></p>
 
+  <hr>
+
+  <h2>User Login</h2>
+
+  <form id="loginform">
+
+    <label for="">Email:</label>
+    <input type="email" name="" id="loginemail" required>
+    <br><br>
+    <label for="">Password:</label>
+    <input type="password" name="" id="loginpassword" required><br><br>
+    <button type="submit">Login</button>
+  </form>
+  <p id="loginmessage"></p>
+
   <script>
     const form = document.getElementById("signupform")
     const message = document.getElementById("message")
@@ -64,6 +79,39 @@
       }
 
       
+    })
+
+    const loginform = document.getElementById("loginform")
+    loginform.addEventListener("submit", async(event)=>{
+      event.preventDefault()
+
+      const email = document.getElementById("loginemail").value
+      const password = document.getElementById("loginpassword").value
+
+      try{
+        const response = await fetch(
+          "http://localhost:3000/user/login",{
+            method:"POST",
+            headers:{
+              "Content-Type" : "application/json"
+            },
+
+            body: JSON.stringify({
+              email,
+              password
+            })
+          }
+        )
+        const data = await response.json()
+
+        document.getElementById("loginmessage").innerText = data.message
+
+        if(data.success){
+          loginform.reset()
+        }
+      }catch(error){
+        document.getElementById("loginmessage").innerText = "Something went wromg"
+      }
     })
 
   </script>

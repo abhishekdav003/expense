@@ -18,4 +18,19 @@ const signup = async (name, email, password) => {
   return user
 }
 
-module.exports = { signup }
+const login = async (email, password) => {
+  const user = await User.findOne({
+    where: {
+      email,
+    }
+  })
+  if (!user) {
+    throw new Error("User not Found.")
+  }
+
+  if (user.password !== password) {
+    throw new Error("Invalid password")
+  }
+  return user
+}
+module.exports = { signup, login}
