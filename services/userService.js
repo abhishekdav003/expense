@@ -1,4 +1,5 @@
 const User = require("../models/userModel")
+const bcrypt =  require("bcrypt")
 
 const signup = async (name, email, password) => {
   const existingUser = await User.findOne({
@@ -10,10 +11,12 @@ const signup = async (name, email, password) => {
     throw new Error("User Already exists")
   }
 
+  const hashedPassword = await bcrypt.hash(password, 10)
+
   const user = await User.create({
     name,
     email,
-    password
+    password: hashedPassword
   })
   return user
 }
@@ -28,7 +31,9 @@ const login = async (email, password) => {
     throw new Error("User not Found.")
   }
 
-  if (user.password !== password) {
+  const isPasswordCorrect = await bcrypt.compare(password, user.password)
+
+  if (!isPasswordCorrect) {
     throw new Error("Invalid password")
   }
   return user
