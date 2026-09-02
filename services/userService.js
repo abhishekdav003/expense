@@ -1,5 +1,6 @@
 const User = require("../models/userModel")
-const bcrypt =  require("bcrypt")
+const bcrypt = require("bcrypt")
+const jwt = require('jsonwebtoken')
 
 const signup = async (name, email, password) => {
   const existingUser = await User.findOne({
@@ -36,6 +37,19 @@ const login = async (email, password) => {
   if (!isPasswordCorrect) {
     throw new Error("Invalid password")
   }
-  return user
+
+  const token = jwt.sign(
+    {
+      id: user.id,
+      email:user.email,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn:"1d"
+    }
+  )
+  return {
+    user, token
+  }
 }
 module.exports = { signup, login}
