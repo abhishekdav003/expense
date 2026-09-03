@@ -110,6 +110,23 @@
       <tbody id="expenselist"></tbody>
     </table>
 
+    <hr>
+    
+    <h3>Leaderboard</h3>
+    
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>User</th>
+          <th>Total Spent</th>
+        </tr>
+      </thead>
+    
+      <tbody id="leaderboardList">
+      </tbody>
+    </table>
+
   </div>
 
   <script>
@@ -183,6 +200,7 @@
           document.getElementById("authsection").style.display = "none"
 
           document.getElementById("loginmessage").innerText = "Login Successful"
+          loadLeaderboard();
         }
       }catch(error){
         document.getElementById("loginmessage").innerText = "Something went wromg"
@@ -200,6 +218,7 @@
       getExpenses();
 
       checkPremiumStatus();
+      loadLeaderboard();
 
     }
     
@@ -256,6 +275,9 @@
 
             if (data.success) {
               expenseForm.reset();
+
+              getExpenses();
+              loadLeaderboard();
             }
 
           } catch (error) {
@@ -340,12 +362,11 @@
                 const data = await response.json();
 
                 if (data.success) {
-
                   document.getElementById("expensemessage").innerText =
                     data.message;
 
                   getExpenses();
-
+                  loadLeaderboard();
                 } else {
 
                   document.getElementById("expensemessage").innerText =
@@ -531,7 +552,47 @@
                     }
 
                   }
-  </script>
+                  async function loadLeaderboard() {
+                      const token = localStorage.getItem("token");
+
+                      try {
+                        const response = await fetch(
+                          "http://localhost:3000/leaderboard",
+                          {
+                            method: "GET",
+                            headers: {
+                              "Authorization": `Bearer ${token}`
+                            }
+                          }
+                        );
+
+                        const data = await response.json();
+
+                        console.log("Leaderboard Data:", data);
+
+                        const leaderboardList =
+                          document.getElementById("leaderboardList");
+
+                        leaderboardList.innerHTML = "";
+
+                        if (data.success) {
+                          data.data.forEach((user, index) => {
+                            leaderboardList.innerHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${user.name}</td>
+            <td>₹${user.totalExpense}</td>
+          </tr>
+        `;
+                          });
+                        }
+
+                      } catch (error) {
+                        console.error("Leaderboard Error:", error);
+                      }
+                    }
+
+                    </script>
   
 </body>
 </html>

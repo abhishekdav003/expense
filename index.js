@@ -8,6 +8,8 @@ const expenseRoute = require("./routes/expenseRoute")
 const User = require("./models/userModel");
 const Order = require("./models/orderModel");
 const orderRoute = require("./routes/orderRoute");
+const Expense = require("./models/expenseModel");
+const leaderboardRoute = require("./routes/leaderboardRoute");
 
 // Relationship
 User.hasMany(Order, {
@@ -18,14 +20,21 @@ Order.belongsTo(User, {
   foreignKey: "userId",
 });
 
-// Database sync
-sequelize.sync();
+User.hasMany(Expense, {
+  foreignKey: "user_id",
+});
+
+Expense.belongsTo(User, {
+  foreignKey: "user_id",
+});
+
 const app = express()
 app.use(cors())
 app.use(express.json())
 app.use("/user", userRoute)
 app.use("/expense", expenseRoute)
 app.use("/order", orderRoute);
+app.use("/leaderboard", leaderboardRoute);
 app.get("/", (req, res) => {
   res.send("User Signup is running is running")
 })
