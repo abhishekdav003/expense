@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SignUp</title>
+  <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 </head>
 <body>
   <div id="authsection">
@@ -45,6 +46,19 @@
 
 </div>
 
+  <hr>
+  <hr>
+  
+  <h3>Premium Membership</h3>
+  
+  <p id="premiumStatus"></p>
+  
+  <button id="premiumButton">
+    Become Premium - ₹100
+  </button>
+  
+  <p id="paymentMessage"></p>
+  
   <hr>
 
   <div id="expensedashboard" style="display: none;">
@@ -177,10 +191,16 @@
 
     const token = localStorage.getItem("token")
 
-    if(token){
-      document.getElementById("authsection").style.display = "none"
-      document.getElementById("expensedashboard").style.display = "block"
+   if (token) {
+
+      document.getElementById("authsection").style.display = "none";
+
+      document.getElementById("expensedashboard").style.display = "block";
+
       getExpenses();
+
+      checkPremiumStatus();
+
     }
     
 
@@ -343,6 +363,174 @@
               }
 
             }
+
+            async function checkPremiumStatus() {
+
+                const token = localStorage.getItem("token");
+
+                try {
+
+                  const response = await fetch(
+                    "http://localhost:3000/user/profile",
+                    {
+                      method: "GET",
+
+                      headers: {
+                        "Authorization": `Bearer ${token}`
+                      }
+                    }
+                  );
+
+                  const data = await response.json();
+
+                  if (data.success) {
+
+                    const premiumStatus =
+                      document.getElementById("premiumStatus");
+
+                    const premiumButton =
+                      document.getElementById("premiumButton");
+
+                    if (data.data.isPremium) {
+
+                      premiumStatus.innerText =
+                        "You are a Premium User";
+
+                      premiumButton.style.display = "none";
+
+                    } else {
+
+                      premiumStatus.innerText =
+                        "You are not a Premium User";
+
+                      premiumButton.style.display = "block";
+
+                    }
+
+                  }
+
+                } catch (error) {
+
+                  console.error("Error checking premium status:", error);
+
+                }
+
+              }
+              const premiumButton = document.getElementById("premiumButton");
+
+                premiumButton.addEventListener("click", async () => {
+
+                  const token = localStorage.getItem("token");
+
+                  try {
+
+                    const response = await fetch(
+                      "http://localhost:3000/order/create",
+                      {
+                        method: "POST",
+
+                        headers: {
+                          "Authorization": `Bearer ${token}`,
+                          "Content-Type": "application/json"
+                        }
+                      }
+                    );
+
+                    const data = await response.json();
+
+                    console.log(data);
+
+                    if (data.success) {
+
+                      const cashfree = Cashfree({
+                        mode: "sandbox"
+                      });
+
+                      const paymentSessionId = data.data.paymentSessionId;
+
+                      const orderId = data.data.order.orderId;
+
+                      const result = await cashfree.checkout({
+                        paymentSessionId: paymentSessionId,
+                        redirectTarget: "_modal"
+                      });
+
+                      console.log("Cashfree Result:", result);
+
+                      // Verify payment from backend
+                      if (result && result.paymentDetails) {
+
+                        await verifyPayment(orderId);
+
+                      }
+
+                    } else {
+
+                      document.getElementById("paymentMessage").innerText =
+                        data.message;
+
+                    }
+
+                  } catch (error) {
+
+                    console.error(error);
+
+                    document.getElementById("paymentMessage").innerText =
+                      "Something went wrong";
+
+                  }
+
+                });
+
+                async function verifyPayment(orderId) {
+
+                    const token = localStorage.getItem("token");
+
+                    try {
+
+                      const response = await fetch(
+                        `http://localhost:3000/order/verify/${orderId}`,
+                        {
+                          method: "GET",
+
+                          headers: {
+                            "Authorization": `Bearer ${token}`
+                          }
+                        }
+                      );
+
+                      const data = await response.json();
+
+                      console.log("Verification Result:", data);
+
+                      if (
+                        data.success &&
+                        data.data.paymentStatus === "PAID"
+                      ) {
+
+                        document.getElementById("paymentMessage").innerText =
+                          "Payment successful! You are now a Premium User.";
+
+                        // Refresh premium status
+                        checkPremiumStatus();
+
+                      } else {
+
+                        document.getElementById("paymentMessage").innerText =
+                          "Payment is not completed.";
+
+                      }
+
+                    } catch (error) {
+
+                      console.error("Verification Error:", error);
+
+                      document.getElementById("paymentMessage").innerText =
+                        "Unable to verify payment.";
+
+                    }
+
+                  }
   </script>
   
 </body>

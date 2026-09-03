@@ -1,5 +1,32 @@
 const userService = require("../services/userService")
 
+const User = require("../models/userModel");
+
+const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ["id", "name", "email", "isPremium"],
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const signup = async (req, res) => {
   try {
     const { name, email, password } = req.body
@@ -60,6 +87,9 @@ const login = async (req, res) => {
   }
 }
 
+
 module.exports = {
-  signup, login
+  signup,
+  login,
+  getUserProfile,
 };
