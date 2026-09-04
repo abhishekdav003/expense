@@ -112,9 +112,18 @@
 
     <hr>
     
+  <hr>
+  
+  <button id="leaderboardButton">
+    Show Leaderboard
+  </button>
+  
+  <div id="leaderboardSection" style="display: none;">
+  
     <h3>Leaderboard</h3>
-    
+  
     <table border="1">
+  
       <thead>
         <tr>
           <th>Rank</th>
@@ -122,10 +131,12 @@
           <th>Total Spent</th>
         </tr>
       </thead>
-    
-      <tbody id="leaderboardList">
-      </tbody>
+  
+      <tbody id="leaderboardList"></tbody>
+  
     </table>
+  
+  </div>
 
   </div>
 
@@ -193,14 +204,20 @@
 
         document.getElementById("loginmessage").innerText = data.message
 
-        if(data.success){
+        if (data.success) {
+          localStorage.setItem("token", data.token);
 
-          localStorage.setItem("token", data.token)
-          loginform.reset()
-          document.getElementById("authsection").style.display = "none"
+          loginform.reset();
 
-          document.getElementById("loginmessage").innerText = "Login Successful"
-          loadLeaderboard();
+          // Hide login/signup section
+          document.getElementById("authsection").style.display = "none";
+
+          // IMPORTANT: Show dashboard immediately
+          document.getElementById("expensedashboard").style.display = "block";
+
+          // Load all dashboard data
+          getExpenses();
+          checkPremiumStatus();
         }
       }catch(error){
         document.getElementById("loginmessage").innerText = "Something went wromg"
@@ -591,6 +608,76 @@
                         console.error("Leaderboard Error:", error);
                       }
                     }
+
+                    const leaderboardButton =
+                        document.getElementById("leaderboardButton");
+
+                      leaderboardButton.addEventListener("click", () => {
+
+                        const leaderboardSection =
+                          document.getElementById("leaderboardSection");
+
+                        leaderboardSection.style.display = "block";
+
+                        loadLeaderboard();
+
+                      });
+
+                      const descriptionInput = document.getElementById("description");
+                        const categorySelect = document.getElementById("category");
+
+                        descriptionInput.addEventListener("blur", async () => {
+
+                          const description = descriptionInput.value.trim();
+
+                          if (!description) {
+                            return;
+                          }
+
+                          const token = localStorage.getItem("token");
+
+                          try {
+
+                            const response = await fetch(
+                              "http://localhost:3000/ai/suggest-category",
+                              {
+                                method: "POST",
+
+                                headers: {
+                                  "Content-Type": "application/json",
+                                  "Authorization": `Bearer ${token}`,
+                                },
+
+                                body: JSON.stringify({
+                                  description: description,
+                                }),
+                              }
+                            );
+
+                            const data = await response.json();
+
+                            if (data.success) {
+
+                              categorySelect.value = data.category;
+
+                              console.log(
+                                "AI Suggested Category:",
+                                data.category
+                              );
+
+                            } else {
+
+                              console.error(data.message);
+
+                            }
+
+                          } catch (error) {
+
+                            console.error("AI Category Error:", error);
+
+                          }
+
+                        });
 
                     </script>
   
