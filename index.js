@@ -12,6 +12,8 @@ const Expense = require("./models/expenseModel");
 const leaderboardRoute = require("./routes/leaderboardRoute");
 const aiRoute = require("./routes/aiRoute");
 const passwordRoute = require("./routes/passwordRoute");
+const incomeRoute = require("./routes/incomeRoute");
+const reportRoute = require("./routes/reportRoute");
 
 // Relationship
 User.hasMany(Order, {
@@ -39,6 +41,10 @@ app.use("/order", orderRoute);
 app.use("/leaderboard", leaderboardRoute);
 app.use("/ai", aiRoute);
 app.use("/password", passwordRoute);
+app.use("/income", incomeRoute);
+app.use("/report", reportRoute); 
+
+
 app.get("/", (req, res) => {
   res.send("User Signup is running is running")
 })

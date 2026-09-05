@@ -6,7 +6,7 @@ const brevo = new BrevoClient({
 
 const sendForgotPasswordEmail = async (email, resetToken) => {
   try {
-    const resetLink = `http://localhost:5500/reset-password.html?token=${resetToken}`;
+    const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
 
     const response = await brevo.transactionalEmails.sendTransacEmail({
       sender: {
