@@ -41,7 +41,36 @@
     <label for="">Password:</label>
     <input type="password" name="" id="loginpassword" required><br><br>
     <button type="submit">Login</button>
+
+    <br><br>
+    
+    <button type="button" id="forgotPasswordButton">
+      Forgot Password?
+    </button>
   </form>
+  <div id="forgotPasswordSection" style="display: none;">
+  
+    <hr>
+  
+    <h3>Forgot Password</h3>
+  
+    <form id="forgotPasswordForm">
+  
+      <label>Email:</label>
+  
+      <input type="email" id="forgotPasswordEmail" required>
+  
+      <br><br>
+  
+      <button type="submit">
+        Send Reset Email
+      </button>
+  
+    </form>
+  
+    <p id="forgotPasswordMessage"></p>
+  
+  </div>
   <p id="loginmessage"></p>
 
 </div>
@@ -139,6 +168,7 @@
   </div>
 
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
   <script>
     const form = document.getElementById("signupform")
@@ -678,6 +708,60 @@
                           }
 
                         });
+
+                        const forgotPasswordButton = document.getElementById(
+                            "forgotPasswordButton"
+                          );
+
+                          const forgotPasswordSection = document.getElementById(
+                            "forgotPasswordSection"
+                          );
+
+                          forgotPasswordButton.addEventListener("click", () => {
+                            forgotPasswordSection.style.display = "block";
+                          });
+
+                          const forgotPasswordForm = document.getElementById(
+                              "forgotPasswordForm"
+                            );
+
+                            forgotPasswordForm.addEventListener("submit", async (event) => {
+
+                              event.preventDefault();
+
+                              const email = document
+                                .getElementById("forgotPasswordEmail")
+                                .value;
+
+                              const message = document.getElementById(
+                                "forgotPasswordMessage"
+                              );
+
+                              try {
+
+                                const response = await axios.post(
+                                  "http://localhost:3000/password/forgotpassword",
+                                  {
+                                    email: email,
+                                  }
+                                );
+
+                                message.innerText = response.data.message;
+
+                                if (response.data.success) {
+                                  forgotPasswordForm.reset();
+                                }
+
+                              } catch (error) {
+
+                                message.innerText =
+                                  error.response?.data?.message ||
+                                  "Something went wrong";
+
+                                console.error("Forgot Password Error:", error);
+                              }
+
+                            });
 
                     </script>
   
