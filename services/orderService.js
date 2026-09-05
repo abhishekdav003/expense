@@ -2,6 +2,8 @@ const Order = require("../models/orderModel");
 const User = require("../models/userModel");
 const cashfree = require("../config/cashfree");
 
+const sequelize = require("../config/db");
+
 const createOrder = async (userId) => {
   const user = await User.findByPk(userId);
 
@@ -54,6 +56,7 @@ const createOrder = async (userId) => {
 
 const verifyPayment = async (orderId) => {
   try {
+    // Verify payment with Cashfree first
     const response = await cashfree.PGFetchOrder(orderId);
 
     const paymentStatus = response.data.order_status;
@@ -69,25 +72,46 @@ const verifyPayment = async (orderId) => {
     }
 
     if (paymentStatus === "PAID") {
-      await order.update({
-        status: "PAID",
-      });
+      // Start database transaction
+      const transaction = await sequelize.transaction();
 
-      await User.update(
-        {
-          isPremium: true,
-        },
-        {
-          where: {
-            id: order.userId,
+      try {
+        // Update order status
+        await order.update(
+          {
+            status: "PAID",
           },
-        },
-      );
+          {
+            transaction,
+          },
+        );
 
-      return {
-        paymentStatus: "PAID",
-        message: "Payment successful. User is now Premium.",
-      };
+        // Update user premium status
+        await User.update(
+          {
+            isPremium: true,
+          },
+          {
+            where: {
+              id: order.userId,
+            },
+            transaction,
+          },
+        );
+
+        // Everything successful → COMMIT
+        await transaction.commit();
+
+        return {
+          paymentStatus: "PAID",
+          message: "Payment successful. User is now Premium.",
+        };
+      } catch (error) {
+        // Something failed → ROLLBACK
+        await transaction.rollback();
+
+        throw error;
+      }
     }
 
     return {
@@ -101,7 +125,9 @@ const verifyPayment = async (orderId) => {
     );
 
     throw new Error(
-      error.response?.data?.message || "Failed to verify payment",
+      error.response?.data?.message ||
+        error.message ||
+        "Failed to verify payment",
     );
   }
 };
