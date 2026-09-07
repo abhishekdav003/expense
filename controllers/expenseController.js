@@ -36,21 +36,27 @@ const addExpense = async (req, res) => {
 
 const getExpense = async (req, res) => {
   try {
-    const expense = await expenseService.getExpense(
-      req.user.id
-    )
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    const result = await expenseService.getExpense(req.user.id, page, limit);
 
     res.status(200).json({
       success: true,
-      data:expense
-    })
+      data: result.expenses,
+      pagination: {
+        currentPage: result.currentPage,
+        totalPages: result.totalPages,
+        totalExpenses: result.totalExpenses,
+      },
+    });
   } catch (error) {
     res.status(400).json({
       success: false,
-      message:error.message
-    })
+      message: error.message,
+    });
   }
-}
+};
 
 const deleteExpense = async (req, res) => {
   try {

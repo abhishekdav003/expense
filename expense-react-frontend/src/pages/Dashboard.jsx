@@ -17,6 +17,12 @@ function Dashboard() {
   const navigate = useNavigate();
 
   const [expenses, setExpenses] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+const [pagination, setPagination] = useState({
+  currentPage: 1,
+  totalPages: 1,
+  totalExpenses: 0,
+});
   const [incomes, setIncomes] = useState([]);
   const [profile, setProfile] = useState(null);
 
@@ -45,17 +51,30 @@ function Dashboard() {
     }
   };
 
-  const fetchExpenses = async () => {
-    try {
-      const response = await api.get("/expense");
-      setExpenses(response.data.data || []);
-    } catch (error) {
-      console.error(
-        error.response?.data?.message ||
-          "Failed to fetch expenses",
-      );
-    }
-  };
+  const fetchExpenses = async (page = 1) => {
+  try {
+    const response = await api.get(
+      `/expense?page=${page}&limit=10`,
+    );
+
+    setExpenses(response.data.data || []);
+
+    setPagination(
+      response.data.pagination || {
+        currentPage: 1,
+        totalPages: 1,
+        totalExpenses: 0,
+      },
+    );
+
+    setCurrentPage(page);
+  } catch (error) {
+    console.error(
+      error.response?.data?.message ||
+        "Failed to fetch expenses",
+    );
+  }
+};
 
   const fetchIncomes = async () => {
     try {
@@ -70,10 +89,10 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    fetchExpenses();
-    fetchIncomes();
-    fetchUserProfile();
-  }, []);
+  fetchExpenses(1);
+  fetchIncomes();
+  fetchUserProfile();
+}, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -124,7 +143,7 @@ function Dashboard() {
   const handleDelete = async (expenseId) => {
     try {
       await api.delete(`/expense/${expenseId}`);
-      fetchExpenses();
+      fetchExpenses(currentPage);
     } catch (error) {
       setMessage(
         error.response?.data?.message ||
@@ -226,9 +245,13 @@ function Dashboard() {
         />
 
         <ExpenseList
-          expenses={expenses}
-          onDelete={handleDelete}
-        />
+  expenses={expenses}
+  onDelete={handleDelete}
+  currentPage={currentPage}
+  totalPages={pagination.totalPages}
+  totalExpenses={pagination.totalExpenses}
+  onPageChange={fetchExpenses}
+/>
         
       </main>
     </div>
