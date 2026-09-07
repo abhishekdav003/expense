@@ -36,11 +36,12 @@ function Dashboard() {
     totalExpenses: 0,
   });
 
-  const [formData, setFormData] = useState({
-    amount: "",
-    description: "",
-    category: "",
-  });
+ const [formData, setFormData] = useState({
+  amount: "",
+  description: "",
+  category: "",
+  note: "",
+});
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -132,18 +133,20 @@ function Dashboard() {
       setMessage("");
 
       const response = await api.post("/expense", {
-        amount: Number(formData.amount),
-        description: formData.description,
-        category: formData.category,
-      });
+  amount: Number(formData.amount),
+  description: formData.description,
+  category: formData.category,
+  note: formData.note,
+});
 
       setMessage(response.data.message);
 
       setFormData({
-        amount: "",
-        description: "",
-        category: "",
-      });
+  amount: "",
+  description: "",
+  category: "",
+  note: "",
+});
 
       await fetchExpenses(1);
     } catch (error) {

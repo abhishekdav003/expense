@@ -36,6 +36,7 @@ function ExpenseList({
                 <tr className="border-b">
                   <th className="p-3">Description</th>
                   <th className="p-3">Category</th>
+                  <th className="p-3">Note</th>
                   <th className="p-3">Amount</th>
                   <th className="p-3">Action</th>
                 </tr>
@@ -50,6 +51,10 @@ function ExpenseList({
 
                     <td className="p-3">
                       {expense.category}
+                    </td>
+
+                    <td className="p-3">
+                      {expense.note || "-"}
                     </td>
 
                     <td className="p-3">

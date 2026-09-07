@@ -2,11 +2,7 @@ const expenseService = require("../services/expenseService")
 
 const addExpense = async (req, res) => {
   try {
-    const {
-      amount,
-      description,
-      category
-    } = req.body
+    const { amount, description, category, note } = req.body;
     
     if (!amount || !description || !category) {
       return res.status(400).json({
@@ -15,10 +11,12 @@ const addExpense = async (req, res) => {
       })
     }
     const expense = await expenseService.addExpense(
-      amount, description,
+      amount,
+      description,
       category,
-      req.user.id
-    )
+      note,
+      req.user.id,
+    );
     res.status(201).json({
       success: true,
       message: "Expense added successfully",

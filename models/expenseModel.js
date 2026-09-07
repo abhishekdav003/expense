@@ -5,30 +5,28 @@ const Expense = sequelize.define("Expense", {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
-    primaryKey:true
+    primaryKey: true,
   },
   amount: {
     type: DataTypes.FLOAT,
-    allowNull:false
+    allowNull: false,
   },
   description: {
     type: DataTypes.STRING,
-    allowNull:false
+    allowNull: false,
   },
   category: {
-    type: DataTypes.ENUM(
-      "Food",
-      "Petrol",
-      "Salary",
-      "Shopping",
-      "Other"
-    ),
-    allowNull:false
+    type: DataTypes.ENUM("Food", "Petrol", "Salary", "Shopping", "Other"),
+    allowNull: false,
+  },
+  note: {
+    type: DataTypes.STRING,
+    allowNull: true,
   },
   user_id: {
     type: DataTypes.INTEGER,
-    allowNull:false
-  }
-})
+    allowNull: false,
+  },
+});
 
 module.exports = Expense

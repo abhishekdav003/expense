@@ -67,7 +67,7 @@ function AddExpenseForm({
 
       <form
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-4 gap-4"
+        className="grid grid-cols-1 md:grid-cols-5 gap-4"
       >
         <input
           type="number"
@@ -117,6 +117,14 @@ function AddExpenseForm({
           <option value="Shopping">Shopping</option>
           <option value="Other">Other</option>
         </select>
+        <input
+  type="text"
+  name="note"
+  placeholder="Note (optional)"
+  value={formData.note}
+  onChange={handleChange}
+  className="border border-gray-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+/>
 
         <button
           type="submit"
