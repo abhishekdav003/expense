@@ -4,8 +4,18 @@ function ExpenseList({
   currentPage,
   totalPages,
   totalExpenses,
+  limit,
   onPageChange,
+  onLimitChange,
 }) {
+  const startExpense =
+    totalExpenses === 0 ? 0 : (currentPage - 1) * limit + 1;
+
+  const endExpense = Math.min(
+    currentPage * limit,
+    totalExpenses,
+  );
+
   return (
     <div className="bg-white p-6 rounded-lg shadow mt-6">
       <div className="flex justify-between items-center mb-4">
@@ -34,9 +44,13 @@ function ExpenseList({
               <tbody>
                 {expenses.map((expense) => (
                   <tr key={expense.id} className="border-b">
-                    <td className="p-3">{expense.description}</td>
+                    <td className="p-3">
+                      {expense.description}
+                    </td>
 
-                    <td className="p-3">{expense.category}</td>
+                    <td className="p-3">
+                      {expense.category}
+                    </td>
 
                     <td className="p-3">
                       ₹{Number(expense.amount).toFixed(2)}
@@ -56,50 +70,59 @@ function ExpenseList({
             </table>
           </div>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6">
-              <button
-                onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-4 py-2 border rounded disabled:opacity-50"
-              >
-                Previous
-              </button>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-6">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">
+                Rows per page:
+              </span>
 
-              <div className="flex gap-2">
-                {Array.from(
-                  { length: totalPages },
-                  (_, index) => index + 1,
-                ).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => onPageChange(page)}
-                    className={`px-3 py-2 rounded ${
-                      currentPage === page
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 border rounded disabled:opacity-50"
+              <select
+                value={limit}
+                onChange={(e) =>
+                  onLimitChange(Number(e.target.value))
+                }
+                className="border rounded px-3 py-2"
               >
-                Next
-              </button>
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
             </div>
-          )}
 
-          {totalPages > 1 && (
-            <p className="text-center text-sm text-gray-500 mt-3">
-              Page {currentPage} of {totalPages}
-            </p>
-          )}
+            <div className="text-sm text-gray-600">
+              {startExpense}-{endExpense} of {totalExpenses}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() =>
+                    onPageChange(currentPage - 1)
+                  }
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+
+                <span className="text-sm text-gray-600 whitespace-nowrap">
+                  Page {currentPage} of {totalPages}
+                </span>
+
+                <button
+                  onClick={() =>
+                    onPageChange(currentPage + 1)
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>

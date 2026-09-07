@@ -17,14 +17,24 @@ function Dashboard() {
   const navigate = useNavigate();
 
   const [expenses, setExpenses] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-const [pagination, setPagination] = useState({
-  currentPage: 1,
-  totalPages: 1,
-  totalExpenses: 0,
-});
   const [incomes, setIncomes] = useState([]);
   const [profile, setProfile] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [limit, setLimit] = useState(() => {
+    const savedLimit = Number(localStorage.getItem("expenseLimit"));
+
+    return [5, 10, 20, 25, 50].includes(savedLimit)
+      ? savedLimit
+      : 10;
+  });
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalExpenses: 0,
+  });
 
   const [formData, setFormData] = useState({
     amount: "",
@@ -37,7 +47,8 @@ const [pagination, setPagination] = useState({
 
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
-  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [leaderboardLoading, setLeaderboardLoading] =
+    useState(false);
 
   const fetchUserProfile = async () => {
     try {
@@ -51,30 +62,35 @@ const [pagination, setPagination] = useState({
     }
   };
 
-  const fetchExpenses = async (page = 1) => {
-  try {
-    const response = await api.get(
-      `/expense?page=${page}&limit=10`,
-    );
+  const fetchExpenses = async (
+    page = 1,
+    selectedLimit = limit,
+  ) => {
+    try {
+      const response = await api.get(
+        `/expense?page=${page}&limit=${selectedLimit}`,
+      );
 
-    setExpenses(response.data.data || []);
+      const data = response.data;
 
-    setPagination(
-      response.data.pagination || {
-        currentPage: 1,
-        totalPages: 1,
-        totalExpenses: 0,
-      },
-    );
+      setExpenses(data.data || []);
 
-    setCurrentPage(page);
-  } catch (error) {
-    console.error(
-      error.response?.data?.message ||
-        "Failed to fetch expenses",
-    );
-  }
-};
+      setPagination(
+        data.pagination || {
+          currentPage: 1,
+          totalPages: 1,
+          totalExpenses: 0,
+        },
+      );
+
+      setCurrentPage(data.pagination?.currentPage || page);
+    } catch (error) {
+      console.error(
+        error.response?.data?.message ||
+          "Failed to fetch expenses",
+      );
+    }
+  };
 
   const fetchIncomes = async () => {
     try {
@@ -89,10 +105,10 @@ const [pagination, setPagination] = useState({
   };
 
   useEffect(() => {
-  fetchExpenses(1);
-  fetchIncomes();
-  fetchUserProfile();
-}, []);
+    fetchExpenses(1, limit);
+    fetchIncomes();
+    fetchUserProfile();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -129,7 +145,7 @@ const [pagination, setPagination] = useState({
         category: "",
       });
 
-      fetchExpenses();
+      await fetchExpenses(1);
     } catch (error) {
       setMessage(
         error.response?.data?.message ||
@@ -140,10 +156,23 @@ const [pagination, setPagination] = useState({
     }
   };
 
+  const handleLimitChange = (newLimit) => {
+    setLimit(newLimit);
+    localStorage.setItem("expenseLimit", newLimit);
+
+    fetchExpenses(1, newLimit);
+  };
+
   const handleDelete = async (expenseId) => {
     try {
       await api.delete(`/expense/${expenseId}`);
-      fetchExpenses(currentPage);
+
+      const pageToLoad =
+        expenses.length === 1 && currentPage > 1
+          ? currentPage - 1
+          : currentPage;
+
+      await fetchExpenses(pageToLoad);
     } catch (error) {
       setMessage(
         error.response?.data?.message ||
@@ -214,7 +243,7 @@ const [pagination, setPagination] = useState({
 
         <StatsCards
           totalExpense={totalExpense}
-          totalEntries={expenses.length}
+          totalEntries={pagination.totalExpenses}
           isPremium={profile?.isPremium}
         />
 
@@ -223,10 +252,9 @@ const [pagination, setPagination] = useState({
             isPremium={profile?.isPremium}
             onPaymentSuccess={fetchUserProfile}
           />
-         
         </div>
 
-         <PremiumReport isPremium={profile?.isPremium} />
+        <PremiumReport isPremium={profile?.isPremium} />
 
         <AddExpenseForm
           formData={formData}
@@ -245,14 +273,15 @@ const [pagination, setPagination] = useState({
         />
 
         <ExpenseList
-  expenses={expenses}
-  onDelete={handleDelete}
-  currentPage={currentPage}
-  totalPages={pagination.totalPages}
-  totalExpenses={pagination.totalExpenses}
-  onPageChange={fetchExpenses}
-/>
-        
+          expenses={expenses}
+          onDelete={handleDelete}
+          currentPage={currentPage}
+          totalPages={pagination.totalPages}
+          totalExpenses={pagination.totalExpenses}
+          limit={limit}
+          onPageChange={fetchExpenses}
+          onLimitChange={handleLimitChange}
+        />
       </main>
     </div>
   );

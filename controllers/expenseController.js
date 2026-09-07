@@ -36,8 +36,16 @@ const addExpense = async (req, res) => {
 
 const getExpense = async (req, res) => {
   try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
+    let page = Number(req.query.page) || 1;
+    let limit = Number(req.query.limit) || 10;
+
+    if (page < 1) page = 1;
+
+    const allowedLimits = [5, 10, 20, 25, 50];
+
+    if (!allowedLimits.includes(limit)) {
+      limit = 10;
+    }
 
     const result = await expenseService.getExpense(req.user.id, page, limit);
 
@@ -48,6 +56,7 @@ const getExpense = async (req, res) => {
         currentPage: result.currentPage,
         totalPages: result.totalPages,
         totalExpenses: result.totalExpenses,
+        limit,
       },
     });
   } catch (error) {
