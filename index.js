@@ -15,6 +15,10 @@ const passwordRoute = require("./routes/passwordRoute");
 const incomeRoute = require("./routes/incomeRoute");
 const reportRoute = require("./routes/reportRoute");
 
+const helmet = require("helmet");
+const compression = require("compression");
+const morgan = require("morgan");
+
 // Relationship
 User.hasMany(Order, {
   foreignKey: "userId",
@@ -32,9 +36,14 @@ Expense.belongsTo(User, {
   foreignKey: "user_id",
 });
 
-const app = express()
-app.use(cors())
-app.use(express.json())
+const app = express();
+
+app.use(helmet());
+app.use(compression());
+app.use(morgan("dev"));
+
+app.use(cors());
+app.use(express.json());
 app.use("/user", userRoute)
 app.use("/expense", expenseRoute)
 app.use("/order", orderRoute);
