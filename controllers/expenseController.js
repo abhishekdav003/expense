@@ -1,4 +1,6 @@
 const expenseService = require("../services/expenseService")
+const s3ExpenseService = require("../services/s3ExpenseService");
+const ExpenseDownload = require("../models/expenseDownloadModel");
 
 const addExpense = async (req, res) => {
   try {
@@ -86,8 +88,86 @@ const deleteExpense = async (req, res) => {
   }
 }
 
+const downloadExpenses = async (req, res) => {
+  try {
+    const result = await s3ExpenseService.downloadExpenses(req.user.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Expense file generated successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getDownloadHistory = async (req, res) => {
+  try {
+    const downloads = await ExpenseDownload.findAll({
+      where: {
+        user_id: req.user.id,
+      },
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.status(200).json({
+      success: true,
+      data: downloads,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getOldDownloadUrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const download = await ExpenseDownload.findOne({
+      where: {
+        id,
+        user_id: req.user.id,
+      },
+    });
+
+    if (!download) {
+      return res.status(404).json({
+        success: false,
+        message: "Download file not found",
+      });
+    }
+
+    const url = await s3ExpenseService.getOldDownloadUrl(
+      req.user.id,
+      download.fileKey,
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        url,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   addExpense,
   getExpense,
-  deleteExpense
-}
+  deleteExpense,
+  downloadExpenses,
+  getDownloadHistory,
+  getOldDownloadUrl,
+};

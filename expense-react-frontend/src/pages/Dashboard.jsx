@@ -12,6 +12,7 @@ import Leaderboard from "../components/dashboard/Leaderboard";
 import IncomeForm from "../components/dashboard/IncomeForm";
 import IncomeList from "../components/dashboard/IncomeList";
 import PremiumReport from "../components/dashboard/PremiumReport";
+import DownloadHistory from "../components/DownloadHistory";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -226,6 +227,21 @@ function Dashboard() {
     navigate("/");
   };
 
+  const handleDownloadExpenses = async () => {
+  try {
+    const response = await api.get("/expense/download");
+
+    const url = response.data.data.url;
+
+    window.open(url, "_blank");
+  } catch (error) {
+    setMessage(
+      error.response?.data?.message ||
+        "Failed to download expenses"
+    );
+  }
+};
+
   return (
     <div className="min-h-screen bg-gray-100">
       <DashboardNavbar
@@ -258,6 +274,19 @@ function Dashboard() {
         </div>
 
         <PremiumReport isPremium={profile?.isPremium} />
+
+       {profile?.isPremium && (
+  <>
+    <DownloadHistory />
+
+    <button
+      onClick={handleDownloadExpenses}
+      className="mb-6 px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+    >
+      Download All Expenses
+    </button>
+  </>
+)}
 
         <AddExpenseForm
           formData={formData}

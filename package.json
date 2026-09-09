@@ -11,6 +11,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1128.0",
+    "@aws-sdk/s3-request-presigner": "^3.1128.0",
     "@getbrevo/brevo": "^6.0.3",
     "@google/genai": "^2.21.0",
     "@tailwindcss/vite": "^4.3.3",
